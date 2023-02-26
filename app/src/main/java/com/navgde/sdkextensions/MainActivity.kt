@@ -58,14 +58,6 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier,
-    )
-}
-
-@Composable
 fun PhotoPickerResultComposable(photoIntent: Intent) {
     val context = LocalContext.current
     var result by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -78,8 +70,6 @@ fun PhotoPickerResultComposable(photoIntent: Intent) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Log.d(TAG, "StateLessComposable: **Compose me column**")
-
         Text(
             text = "\uD83C\uDF05 SDKExtensions Sample \uD83C\uDF05",
             style = TextStyle(fontWeight = FontWeight.ExtraBold, fontSize = 28.sp),
