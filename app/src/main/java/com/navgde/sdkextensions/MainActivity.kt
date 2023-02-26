@@ -97,12 +97,4 @@ fun isPhotoPickerAvailable(): Boolean =
         }
     }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SDKExtensionsTheme {
-        Greeting("Android")
-    }
-}
-
 const val TAG = "SDKExtensions"
