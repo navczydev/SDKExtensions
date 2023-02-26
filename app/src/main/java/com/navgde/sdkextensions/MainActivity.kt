@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.navgde.sdkextensions.ui.theme.SDKExtensionsTheme
 
@@ -84,6 +84,13 @@ fun PhotoPickerResultComposable(photoIntent: Intent) {
             text = "\uD83C\uDF05 SDKExtensions Sample \uD83C\uDF05",
             style = TextStyle(fontWeight = FontWeight.ExtraBold, fontSize = 28.sp),
         )
+    }
+}
+
+@Composable
+fun OpenPhotoPicker(openLauncher: () -> Unit) {
+    OutlinedButton(onClick = openLauncher) {
+        Text("Open photo picker")
     }
 }
 
