@@ -1,16 +1,17 @@
 package com.navgde.sdkextensions
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.ext.SdkExtensions
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -47,6 +48,7 @@ import com.navgde.sdkextensions.ui.theme.SDKExtensionsTheme
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class MainActivity : ComponentActivity() {
 
+    // use old way for launching activity for result
     private val photoIntent = Intent(MediaStore.ACTION_PICK_IMAGES).apply {
         // default: images & videos
         type = "image/*"
@@ -62,7 +64,7 @@ class MainActivity : ComponentActivity() {
             SDKExtensionsTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    PhotoPickerResultComposable(photoIntent = photoIntent)
+                    PhotoPickerResultComposable()
                 }
             }
         }
@@ -70,14 +72,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun PhotoPickerResultComposable(photoIntent: Intent) {
+fun PhotoPickerResultComposable() {
     val context = LocalContext.current
+
     var result by rememberSaveable { mutableStateOf<Uri?>(null) }
-    val launcher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            Log.d(TAG, "PhotoPickerResultComposable: RESULT_CODE ${it.resultCode}")
-            result = it.data?.data
+
+    val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        // Callback is invoked after the user selects a media item or closes the
+        // photo picker.
+        if (uri != null) {
+            Log.d(TAG, "PhotoPickerResultComposable: RESULT_CODE $uri")
+            result = uri
+        } else {
+            Log.d(TAG, "No media selected")
         }
+    }
+
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -105,7 +115,12 @@ fun PhotoPickerResultComposable(photoIntent: Intent) {
         OpenPhotoPicker(
             openLauncher = {
                 when {
-                    isPhotoPickerAvailable() -> launcher.launch(photoIntent)
+                    ActivityResultContracts.PickVisualMedia.isPhotoPickerAvailable(context = context) -> pickMedia.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly,
+                        ),
+                    )
+
                     else -> Toast.makeText(context, "Photo picker not available", Toast.LENGTH_SHORT).show()
                 }
             },
@@ -140,17 +155,38 @@ fun OpenPhotoPicker(openLauncher: () -> Unit) {
     }
 }
 
+/*
 // Safely use extension APIs that are available with Android 11 (API level 30) Extensions Version 2, such as Photo Picker.
 
 fun isPhotoPickerAvailable(): Boolean =
     when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2 -> {
-            SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2
-        }
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> true
+
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+            SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2 -> true
 
         else -> {
             false
         }
     }
+*/
+
+/*
+// Check extension version
+fun isExtensionVersion2OrHigherAvailable(): Boolean {
+    return SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2
+    // Safely use extension APIs that are available with Android 11 (API level 30) Extensions Version 2, such as Photo Picker.
+}
+*/
+
+// Older way of checking the availability of PhotoPicker
+fun isPhotoPickerAvailableBasedOnSDKVersion(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+fun isPhotoPickerAvailableDeprecatedWay(): Boolean = ActivityResultContracts.PickVisualMedia.isPhotoPickerAvailable()
+
+// https://developer.android.com/jetpack/androidx/releases/activity?authuser=1#1.7.0-alpha04
+fun isPhotoPickerAvailableRecommendedWay(context: Context): Boolean {
+    return ActivityResultContracts.PickVisualMedia.isPhotoPickerAvailable(context = context)
+}
 
 const val TAG = "SDKExtensions"
